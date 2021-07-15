@@ -10,10 +10,7 @@
 #   i : enumerator of lgs (should be unique)
 ##################################################
 
-=universe {/a /b /c /d /e /f /g /h /i /j /k /l /m /n /o /p /q /r /s /t /u /v /w
-/x /y /z /A /B /C /D /E /F /G /H /I /J /K /L /M /N /O /P /Q /R /S /T /U /V /W /X
-/Y /Z /0 /1 /2 /3 /4 /5 /6 /7 /8 /9 /# /$}
-
+=universe {/a, /b, /c, /d, /e, /f, /g, /h, /i, /j, /k, /l, /m, /n, /o, /p, /q, /r, /s, /t, /u, /v, /w, /x, /y, /z, /A, /B, /C, /D, /E, /F, /G, /H, /I, /J, /K, /L, /M, /N, /O, /P, /Q, /R, /S, /T, /U, /V, /W, /X, /Y, /Z, /á, /à, /ǎ, /é, /è, /ě, /ó, /ò, /ǒ, /ú, /ù, /ǔ}
 
 =aa  </a /a>
 =ab  </a /b>
@@ -91,8 +88,6 @@
 =LTT.64.6.2.1 ∧{least5ab,¬least6ab}
 
 
-
-
 ####################
 # WRITING THE FSAs #
 ####################
@@ -137,6 +132,6 @@
 
 :writeatt ../fstlib/att_format/LTT.64.3.2.0.att ins.txt outs.txt LTT.64.3.2.0
 :writeatt ../fstlib/att_format/LTT.64.3.2.1.att ins.txt outs.txt LTT.64.3.2.1
-:writeatt ../fstlib/att_format/LTT.64.3.2.2.att ins.txt outs.txt LTT.64.3.2.2
-:writeatt ../fstlib/att_format/LTT.64.3.2.3.att ins.txt outs.txt LTT.64.3.2.3
+:writeatt ../fstlib/att_format/LTT.64.6.2.0.att ins.txt outs.txt LTT.64.6.2.0
+:writeatt ../fstlib/att_format/LTT.64.6.2.1.att ins.txt outs.txt LTT.64.6.2.1
 

@@ -10,7 +10,7 @@ trap abort SIGINT
 # ------------------ PARAMETERS TO EDIT -----------------------
 # -------------------------------------------------------------
 UNIVERSAL_ARGS=( --batch-size 64 --epochs 30 --embed-dim 100 )
-rnn_type="simple" # simple / gru / lstm
+rnn_type="lstm" # simple / gru / lstm
 # -------------------------------------------------------------
 
 
@@ -22,9 +22,9 @@ do
   LANGS+=($line)
 done < $filename
 
-DATA_SIZES=( 1k 10k 100k )
+DATA_SIZES=( 1k 10k ) # may add 100k
 DROPOUTS=( NoDrop )
-DIRECTIONS=( Uni Bi )
+DIRECTIONS=( Uni ) # may add Bi
 TESTS=( Test1 Test2 Test3 )
 
 if [ ! -e models ]; then
