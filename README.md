@@ -22,7 +22,7 @@ The workflow of this codebase was tested on Linux systems using Conda, available
 First, install Conda. Next, download this repository with the green 'Code' button or via `git`:
 
 ```cmd
-git clone https://github.com/Dechrissen/subregular-learning.git
+git clone https://github.com/heinz-jeffrey/subregular-learning.git
 ```
 Create a new environment <environment_name> (call it `subreg`, for example) like below, and activate the environment. The environment can be closed when you're finished with `conda deactivate`.
 ```cmd
@@ -168,10 +168,12 @@ Shibata, the researchers are based at Stony Brook University.
 - Paul Fodor (Professor of Instruction, CS)
 - Tiantian Gao (CS, PhD 2019)
 - [Jeffrey Heinz (Professor, Linguistics & IACS)](http://jeffreyheinz.net/)
-- [Kalina Kostyzyn (Ling, current PhD)](https://github.com/kkostyszyn)
+- [Dakotah Lambert (Ling, current PhD)](https://github.com/vvulpes0)
+- [Kalina Kostyszyn (Ling, current PhD)](https://github.com/kkostyszyn)
 - [Emily Peterson (Ling, CompLing MA 2020)](https://github.com/emkp)
-- Chihiro Shibata (Professor, Tokyo University of Technology CS)
+- Chihiro Shibata (Professor, Hosei University)
 - [Cody St. Clair (Ling MA 2020)](https://github.com/cody-stclair)
+- [Sam van der Poel (current AMS MA)](https://github.com/samvanderpoel)
 - Rahul Verma (CS, MS 2018)
 
-Most recently, this repository is a continuation by Derek Andersen of the work done by Peterson, St. Clair, and Chau [here](https://github.com/emkp/CSE538_FinalProject). A summary of the results from their work is in `/docs/2020_report.pdf`. They themselves forked [Kostyzyn's repo](https://github.com/kkostyszyn/SBFST_2019). Kostyzyn inherited the code from Gao, and Verma originated the code base for the project.
+Most recently, this repository is a continuation by Derek Andersen of the work done by Peterson, St. Clair, and Chau [here](https://github.com/emkp/CSE538_FinalProject). A summary of the results from their work is in `/docs/2020_report.pdf`. They themselves forked [Kostyszyn's repo](https://github.com/kkostyszyn/SBFST_2019). Kostyszyn inherited the code from Gao, and Verma originated the code base for the project.

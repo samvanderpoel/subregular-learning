@@ -12,11 +12,16 @@
 # updated 3 December 2020
 #
 import pynini
+import argparse
 import functools
 import numpy as np
 import random
 import pathlib
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--lang', type=str, required=True)
+args = parser.parse_args()
+x = args.lang
 
 def A(s):
     return pynini.acceptor(s, token_type="utf8")
@@ -66,7 +71,7 @@ def sigmastar(fsa):
 
 def list_string_set(acceptor):
     my_list = []
-    paths = acceptor.paths()
+    paths = acceptor.paths(input_token_type="utf8", output_token_type="utf8")
     for s in paths.ostrings():
         my_list.append(s)
     my_list.sort(key=len)
@@ -92,7 +97,7 @@ def editExactly1(fsa):
     # a transducer that produces all strings that are within 1 edit of its input string
     return edit1transducer.optimize()
 
-def border(fsa,n):
+def border(pos_dict, neg_dict, fsa,n):
     '''
     A function that takes an fsa and produces an fst;
     the fst converts strings of length n in the language to "border" strings,
@@ -106,14 +111,16 @@ def border(fsa,n):
     cofsa.optimize()
     bpairs = fsa @ editTransducer @ cofsa     # this is the key insight which gives entire border
     bpairs.optimize()
-    sigmaN = pynini.closure(s,n,n)
-    sigmaN.optimize()
-    bpairsN = sigmaN @ bpairs               # here we limit the border to input words of length=n
+    pos_availN = pos_dict[n]
+    pos_availN.optimize()
+    neg_availN = neg_dict[n] | neg_dict[n-1] | neg_dict[n+1]
+    neg_availN.optimize()
+    bpairsN = pos_availN @ bpairs @ neg_availN               # here we limit the border to input words of length=n
     bpairsN.optimize()
     return bpairsN
 
 
-def build (border, lang, lang_name, n):
+def build (pos_dict, neg_dict, lang, lang_name, n, length):
     '''
     A function that creates the adv_data files that are in /data_gen/ ;
     It gets the set of "border" strings from `border()`
@@ -121,20 +128,24 @@ def build (border, lang, lang_name, n):
 
     Inputs:
     -------
-    border : fst
-        the fsa that recognizes border strings
+    pos_dict
+    neg_dict
     lang : fst
         the fsa that recognizes the language in question
+    lang_name
     n : int
         length of the strings used to generate the border strings
+    length
     '''
+    tests = {'short':'3', 'long':'4'}
+    test  = tests[length]
     path_to_library = str(pathlib.Path(__file__).parent.absolute().parent)
-    test3_files = [path_to_library+"/data_gen/100k/"+lang_name+"_Test3.txt",
-                   path_to_library+"/data_gen/10k/"+lang_name+"_Test3.txt",
-                   path_to_library+"/data_gen/1k/"+lang_name+"_Test3.txt"]
-    f = [open(test3_files[0], "w+"),
-         open(test3_files[1], "w+"),
-         open(test3_files[2], "w+")]
+    test_files = [path_to_library+"/data_gen/100k/"+lang_name+"_Test" + test + ".txt",
+                   path_to_library+"/data_gen/10k/"+lang_name+"_Test" + test + ".txt",
+                   path_to_library+"/data_gen/1k/"+lang_name+"_Test" + test + ".txt"]
+    f = [open(test_files[0], "w+"),
+         open(test_files[1], "w+"),
+         open(test_files[2], "w+")]
 
     count = 0
 
@@ -142,16 +153,16 @@ def build (border, lang, lang_name, n):
     for i in range(5):
         # writes 2*xk/10 random strings to the files in f
         # border(lang, n) creates border pairs for length n
-        by_len(border(lang, n), f, count)
+        by_len(border(pos_dict, neg_dict, lang, n), f, count)
 
     for i in range(3):
         f[i].close()
 
     return count
 
-def create_adversarial_examples(pos_dict, fsa, lang_name, min_len, max_len):
-    for i in range(ls_min_len,ls_max_len+1):
-        c = build(border,fsa,lang_name, i)
+def create_adversarial_examples(pos_dict, neg_dict, fsa, lang_name, min_len, max_len, length):
+    for i in range(min_len,max_len+1):
+        c = build(pos_dict, neg_dict, fsa,lang_name, i, length=length)
     return c
 
 def by_len(ex, f, count):
@@ -404,58 +415,53 @@ tags = open(path_to_library / pathlib.Path("tags.txt"))
 tags = tags.readlines()
 
 # define hyper-parameters
-for x in tags:
-    print('\nStarting on', x)
-    my_fsa = pynini.Fst.read(str(path_to_library) + "/src/fstlib/fst_format/" + x[:-1] + ".fst")
-    x = x[:-1]
-    ss_min_len = 10
-    ss_max_len = 19
-    train_pos_num = 5000
-    dev_pos_num = 5000
+print('\nStarting on', x)
+my_fsa = pynini.Fst.read(str(path_to_library) + "/src/fstlib/fst_format/" + x + ".fst")
+ss_min_len = 10
+ss_max_len = 19
+train_pos_num = 5000
+dev_pos_num = 5000
 
-    test1_pos_num = 5000
-    test2_pos_num = 2500
-    test3_pos_num = 5000
+test1_pos_num = 5000
+test2_pos_num = 2500
+test3_pos_num = 5000
 
-    ls_min_len = 31
-    ls_max_len = 50
+ls_min_len = 31
+ls_max_len = 50
 
-    dir_name = str(path_to_library)+"/data_gen/100k/" + x
+dir_name = str(path_to_library)+"/data_gen/100k/" + x
 
 
-    #FIRST - set up dictionary
-    pos_dict = get_pos_string(my_fsa, ss_min_len, ss_max_len)
-    neg_dict = get_neg_string(my_fsa, ss_min_len, ss_max_len)
+#FIRST - set up dictionary
+pos_dict = get_pos_string(my_fsa, ss_min_len-1, ss_max_len+1)
+neg_dict = get_neg_string(my_fsa, ss_min_len-1, ss_max_len+1)
 
 
-    # create training data with duplicates
-    # start with a file that has 100k words. from there, prune to have 10k and 1k from that file.
-    pos_dict, neg_dict = \
-    create_data_with_duplicate(dir_name + "_Training.txt", pos_dict, neg_dict, ss_min_len, ss_max_len, train_pos_num, 1)
-    prune(x + "_Training.txt", dir_name + "_Training.txt")
+# create training data with duplicates
+# start with a file that has 100k words. from there, prune to have 10k and 1k from that file.
+pos_dict, neg_dict = \
+create_data_with_duplicate(dir_name + "_Training.txt", pos_dict, neg_dict, ss_min_len, ss_max_len, train_pos_num, 1)
+prune(x + "_Training.txt", dir_name + "_Training.txt")
 
-    # create dev and test_1 (no duplicates, no overlap in train/dev/test data)
-    pos_dict, neg_dict = create_data_no_duplicate(dir_name + "_Dev.txt", pos_dict, neg_dict, ss_min_len, ss_max_len, dev_pos_num)
-    prune(x + "_Dev.txt", dir_name + "_Dev.txt")
+# create dev and test_1 (no duplicates, no overlap in train/dev/test data)
+pos_dict, neg_dict = create_data_no_duplicate(dir_name + "_Dev.txt", pos_dict, neg_dict, ss_min_len, ss_max_len, dev_pos_num)
+prune(x + "_Dev.txt", dir_name + "_Dev.txt")
 
-    pos_dict, neg_dict = create_data_no_duplicate(dir_name + "_Test1.txt", pos_dict, neg_dict, ss_min_len, ss_max_len, test1_pos_num)
-    prune(x + "_Test1.txt", dir_name + "_Test1.txt")
+pos_dict, neg_dict = create_data_no_duplicate(dir_name + "_Test1.txt", pos_dict, neg_dict, ss_min_len, ss_max_len, test1_pos_num)
+prune(x + "_Test1.txt", dir_name + "_Test1.txt")
 
+# creat test_3 (short adversarial examples)
+create_adversarial_examples(pos_dict, neg_dict, my_fsa, x, ss_min_len, ss_max_len, length='short')
 
-    # generate long strings
-    pos_dict = get_pos_string(my_fsa, ls_min_len, ls_max_len)
-    neg_dict = get_neg_string(my_fsa, ls_min_len, ls_max_len)
+# generate long strings
+pos_dict = get_pos_string(my_fsa, ls_min_len-1, ls_max_len+1)
+neg_dict = get_neg_string(my_fsa, ls_min_len-1, ls_max_len+1)
 
-    # create test_2 (no duplicates)
-    create_data_no_duplicate(dir_name + "_Test2.txt", pos_dict, neg_dict, ls_min_len, ls_max_len, test2_pos_num)
-    prune(x + "_Test2.txt", dir_name + "_Test2.txt")
+# create test_2 (no duplicates)
+create_data_no_duplicate(dir_name + "_Test2.txt", pos_dict, neg_dict, ls_min_len, ls_max_len, test2_pos_num)
+prune(x + "_Test2.txt", dir_name + "_Test2.txt")
 
+# create test_4 (long adversarial examples)
+create_adversarial_examples(pos_dict, neg_dict, my_fsa, x, ls_min_len, ls_max_len, length='long')
 
-    # create test_3 (adversarial examples)
-    create_adversarial_examples(pos_dict, my_fsa, x, ls_min_len, ls_max_len)
-
-    print("Finished", x)
-
-print("Finished!")
-
-
+print("Finished", x)
